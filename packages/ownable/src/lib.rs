@@ -102,8 +102,7 @@ impl OwnershipStore {
     /// Return the updated ownership.
     pub fn update_ownership(
         &self,
-        api: &dyn Api,
-        storage: &mut dyn Storage,
+        deps: DepsMut,
         block: &BlockInfo,
         sender: &Addr,
         action: Action,
@@ -112,9 +111,9 @@ impl OwnershipStore {
             Action::TransferOwnership {
                 new_owner,
                 expiry,
-            } => self.transfer_ownership(api, storage, sender, &new_owner, expiry),
-            Action::AcceptOwnership => self.accept_ownership(storage, block, sender),
-            Action::RenounceOwnership => self.renounce_ownership(storage, sender),
+            } => self.transfer_ownership(deps.api, deps.storage, sender, &new_owner, expiry),
+            Action::AcceptOwnership => self.accept_ownership(deps.storage, block, sender),
+            Action::RenounceOwnership => self.renounce_ownership(deps.storage, sender),
         }
     }
 
@@ -289,12 +288,11 @@ pub fn assert_owner(store: &dyn Storage, sender: &Addr) -> Result<(), OwnershipE
 /// Return the updated ownership.
 pub fn update_ownership(
     deps: DepsMut,
-    storage: &mut dyn Storage,
     block: &BlockInfo,
     sender: &Addr,
     action: Action,
 ) -> Result<Ownership<Addr>, OwnershipError> {
-    OWNERSHIP.update_ownership(deps.api, storage, block, sender, action)
+    OWNERSHIP.update_ownership(deps, block, sender, action)
 }
 
 /// Get the current ownership value.
@@ -448,8 +446,7 @@ mod tests {
         {
             let err = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(12345),
                     &jake,
                     Action::TransferOwnership {
@@ -465,8 +462,7 @@ mod tests {
         {
             let ownership = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(12345),
                     &larry,
                     Action::TransferOwnership {
@@ -502,8 +498,7 @@ mod tests {
         {
             let err = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(12345),
                     &pumpkin,
                     Action::AcceptOwnership,
@@ -526,8 +521,7 @@ mod tests {
         {
             let err = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(12345),
                     &jake,
                     Action::AcceptOwnership,
@@ -540,8 +534,7 @@ mod tests {
         {
             let err = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(69420),
                     &pumpkin,
                     Action::AcceptOwnership,
@@ -554,8 +547,7 @@ mod tests {
         {
             let ownership = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(10000),
                     &pumpkin,
                     Action::AcceptOwnership,
@@ -591,8 +583,7 @@ mod tests {
         {
             let err = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(12345),
                     &jake,
                     Action::RenounceOwnership,
@@ -605,8 +596,7 @@ mod tests {
         {
             let ownership = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(12345),
                     &larry,
                     Action::RenounceOwnership,
@@ -630,8 +620,7 @@ mod tests {
         {
             let err = OWNERSHIP
                 .update_ownership(
-                    &deps.api.clone(),
-                    deps.as_mut().storage,
+                    deps.as_mut(),
                     &mock_block_at_height(12345),
                     &larry,
                     Action::RenounceOwnership,
