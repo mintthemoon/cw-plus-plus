@@ -3,7 +3,7 @@
 use std::fmt::Display;
 
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Api, Attribute, BlockInfo, StdError, StdResult, Storage};
+use cosmwasm_std::{Addr, Api, Attribute, BlockInfo, DepsMut, StdError, StdResult, Storage};
 use cw_address_like::AddressLike;
 use cw_storage_plus::Item;
 
@@ -258,8 +258,8 @@ pub enum OwnershipError {
 }
 
 /// Storage constant for the contract's ownership
-pub const OWNERSHIP_KEY: &str = "ownership";
-pub const OWNERSHIP: OwnershipStore = OwnershipStore::new(OWNERSHIP_KEY);
+const OWNERSHIP_KEY: &str = "ownership";
+const OWNERSHIP: OwnershipStore = OwnershipStore::new(OWNERSHIP_KEY);
 
 /// Set the given address as the contract owner.
 ///
@@ -288,13 +288,13 @@ pub fn assert_owner(store: &dyn Storage, sender: &Addr) -> Result<(), OwnershipE
 /// Update the contract's ownership info based on the given action.
 /// Return the updated ownership.
 pub fn update_ownership(
-    api: &dyn Api,
+    deps: DepsMut,
     storage: &mut dyn Storage,
     block: &BlockInfo,
     sender: &Addr,
     action: Action,
 ) -> Result<Ownership<Addr>, OwnershipError> {
-    OWNERSHIP.update_ownership(api, storage, block, sender, action)
+    OWNERSHIP.update_ownership(deps.api, storage, block, sender, action)
 }
 
 /// Get the current ownership value.
@@ -347,7 +347,7 @@ impl<T: AddressLike> Ownership<T> {
 }
 
 // This is a nice helper, maybe move to dedicated utils package?
-pub fn none_or<T: Display>(or: Option<&T>) -> String {
+fn none_or<T: Display>(or: Option<&T>) -> String {
     or.map_or_else(|| "none".to_string(), |or| or.to_string())
 }
 
